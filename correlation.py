@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Correlation:
-    def __init__(self, input_file="news.csv", output_file="output.xlsx", encoding="utf-8", k=6):
+    def __init__(self, input_file="news.csv", output_file="output.xlsx", encoding="utf-8", k=5):
         self.input = input_file
         self.output = output_file
         self.encoding = encoding
@@ -33,15 +33,35 @@ class Correlation:
         df2 = df2.transpose()
         return df2, list_of_week, list_of_tag
 
+    def sum_dataframe(self, df):
+        sum_positive = 0
+        sum_negative = 0
+        sum_all = df.abs().sum().sum()
+        for i in df.columns:
+            for j in df.index:
+                value = df.at[i, j]
+                if value < 0:
+                    sum_negative += value
+                else:
+                    sum_positive += value
+        return sum_positive, sum_negative, sum_all
+
+
+
     def correlation(self):
         conc = ""
-        with pd.ExcelWriter(self.output) as writer:
-            df, list_of_week, list_of_tag = self.dataframe_transform_to_correlation()
-            len_lag = len(list_of_week) - self.k + 1
-            for i in range(len_lag):
-                df_corr = df.iloc[i:self.k + i, :]
-                for item in df_corr.index:
-                    conc += "_" + str(item)
-                df_corr = df_corr.corr()
-                df_corr.to_excel(writer, sheet_name=f'week{conc}', index=True)
-                conc = ""
+        with open('sums.txt', mode="w") as f:
+            f.write("\t\t" + "week" + "\t\t\t" + "positive" + "\t\t\t" + "negative" + "\t\t\t\t" + "abs" + "\n")
+            with pd.ExcelWriter(self.output) as writer:
+                df, list_of_week, list_of_tag = self.dataframe_transform_to_correlation()
+                len_lag = len(list_of_week) - self.k + 1
+                for i in range(len_lag):
+                    df_corr = df.iloc[i:self.k + i, :]
+                    for item in df_corr.index:
+                        conc += "_" + str(item)
+                    df_corr = df_corr.corr()
+                    df_corr.to_excel(writer, sheet_name=f'week{conc}', index=True)
+                    self.sum_dataframe(df_corr)
+                    sums = [self.sum_dataframe(df_corr)]
+                    f.write("week" + conc + " " + str(sums) + "\n")
+                    conc = ""

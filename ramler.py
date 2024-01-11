@@ -22,7 +22,7 @@ all_objects = muppy.get_objects()  # this causes pydev debugger exit with code -
 #
 
 class RamblerPars:
-    def __init__(self, days=180, pages=20, tag_file="tags.json", output="news.csv", encoding="utf-8"):
+    def __init__(self, days=100, pages=1, tag_file="tags.json", output="news1.csv", encoding="utf-8"):
         # Текущая дата
         current_time = datetime.datetime.today()
 
@@ -97,5 +97,5 @@ class RamblerPars:
         for current_time in self.date_list:
             for current_page in range(1, self.pages + 1):
                 url = f"https://peroxide.rambler.ru/v1/projects/1/clusters/?limit=50&page={current_page}&date={current_time.year}-{current_time.month}-{current_time.day}"
-                print("ссылка создана")
+                # print("ссылка создана")
                 yield current_time.isocalendar().week, url
