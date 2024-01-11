@@ -44,24 +44,25 @@ class Correlation:
                     sum_negative += value
                 else:
                     sum_positive += value
-        return sum_positive, sum_negative, sum_all
-
-
+        return sum_positive - 45, sum_negative, sum_all - 45
 
     def correlation(self):
-        conc = ""
-        with open('sums.txt', mode="w") as f:
-            f.write("\t\t" + "week" + "\t\t\t" + "positive" + "\t\t\t" + "negative" + "\t\t\t\t" + "abs" + "\n")
+        list_current_week = ""
+        sums = []
+        row_sum = []
+        with pd.ExcelWriter('sums.xlsx') as f:
             with pd.ExcelWriter(self.output) as writer:
                 df, list_of_week, list_of_tag = self.dataframe_transform_to_correlation()
                 len_lag = len(list_of_week) - self.k + 1
                 for i in range(len_lag):
                     df_corr = df.iloc[i:self.k + i, :]
                     for item in df_corr.index:
-                        conc += "_" + str(item)
+                        list_current_week += "_" + str(item)
                     df_corr = df_corr.corr()
-                    df_corr.to_excel(writer, sheet_name=f'week{conc}', index=True)
+                    df_corr.to_excel(writer, sheet_name=f'week{list_current_week}', index=True)
                     self.sum_dataframe(df_corr)
-                    sums = [self.sum_dataframe(df_corr)]
-                    f.write("week" + conc + " " + str(sums) + "\n")
-                    conc = ""
+                    sums.append(self.sum_dataframe(df_corr))
+                    row_sum.append("week" + list_current_week)
+                    list_current_week = ""
+            df_sum = pd.DataFrame(sums, index=row_sum, columns=["positive", "negative", "abs"])
+            df_sum.to_excel(f)
