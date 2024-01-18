@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Correlation:
-    def __init__(self, input_file="news.csv", output_file="output.xlsx", encoding="utf-8", k=5):
+    def __init__(self, input_file="files/news.csv", output_file="files/output.xlsx", encoding="utf-8", k=5):
         self.input = input_file
         self.output = output_file
         self.encoding = encoding
@@ -42,7 +42,7 @@ class Correlation:
                 value = df.at[i, j]
                 if value < 0:
                     sum_negative += value
-                else:
+                elif value > 0:
                     sum_positive += value
         return sum_positive - 45, sum_negative, sum_all - 45
 
@@ -50,7 +50,7 @@ class Correlation:
         list_current_week = ""
         sums = []
         row_sum = []
-        with pd.ExcelWriter('sums.xlsx') as f:
+        with pd.ExcelWriter('files/sums.xlsx') as f:
             with pd.ExcelWriter(self.output) as writer:
                 df, list_of_week, list_of_tag = self.dataframe_transform_to_correlation()
                 len_lag = len(list_of_week) - self.k + 1

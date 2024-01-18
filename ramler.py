@@ -1,12 +1,7 @@
-import sys
-
 import requests
 import datetime
 import json
 import csv
-from pympler import muppy
-
-all_objects = muppy.get_objects()  # this causes pydev debugger exit with code -1073741819 (0xC0000005)
 
 
 # Парсер выполняет поиск по ссылке https://peroxide.rambler.ru/v1/projects/1/clusters/?limit=50&page=1&date=2023-12-31
@@ -22,9 +17,9 @@ all_objects = muppy.get_objects()  # this causes pydev debugger exit with code -
 #
 
 class RamblerPars:
-    def __init__(self, days=100, pages=1, tag_file="tags.json", output="news1.csv", encoding="utf-8"):
+    def __init__(self, days=100, pages=1, tag_file="tags.json", output="files/news.csv", encoding="utf-8"):
         # Текущая дата
-        current_time = datetime.datetime.today()
+        current_time = self.get_current_time()
 
         # Если раскоментированно, то выполняет парсинг начиная с 31.12.2023. Важно: Необходимо раскоментировать костыль (строка 15 в correlation.py)
         # current_time = datetime.datetime.today() - datetime.timedelta(datetime.datetime.today().day) # 31.12.2023
@@ -38,10 +33,20 @@ class RamblerPars:
         self.encoding = encoding
         self.tags = self.get_tags_from_json()
         self.date_list = [current_time - datetime.timedelta(days=x) for x in range(days)]  # Создание списка дней
-        print("Программа будет работать " + str(days * pages / 60) + " минут")
+
+    def get_current_time(self):
+        return datetime.datetime.today()
+
+    def get_time_work(self):
+        current_time = self.get_current_time()
+        time_work = self.days * self.pages
+        delta_time_work = current_time + datetime.timedelta(minutes=(time_work // 60), seconds=(time_work % 60))
+        print("\nНачало работы: "f"{current_time.hour}ч. {current_time.minute}м. {current_time.second}с. "
+              f"\nКонец работы: {delta_time_work.hour}ч. {delta_time_work.minute}м. {delta_time_work.second}с.\n")
 
     # Забираем словарь с тэгами из файла
     def get_tags_from_json(self):
+        self.get_time_work()
         with open(self.tag_file, mode="r", encoding="utf-8") as r_file:
             data = r_file.read()
             data = json.loads(data)
@@ -99,3 +104,10 @@ class RamblerPars:
                 url = f"https://peroxide.rambler.ru/v1/projects/1/clusters/?limit=50&page={current_page}&date={current_time.year}-{current_time.month}-{current_time.day}"
                 # print("ссылка создана")
                 yield current_time.isocalendar().week, url
+
+
+def data_input():
+    days = input("Введите days: ")
+    pages = input("Введите pages: ")
+    weeks = input("Введите weeks: ")
+    return days, pages, weeks
