@@ -1,7 +1,7 @@
 from ramler import RamblerPars, data_input
 from correlation import Correlation
 
-from sys import argv
+# from sys import argv
 
 # prog_name, days, pages, weeks = argv
 
