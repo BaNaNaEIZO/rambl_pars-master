@@ -59,7 +59,7 @@ class Correlation:
                     for item in df_corr.index:
                         list_current_week += "_" + str(item)
                     df_corr = df_corr.corr()
-                    df_corr.to_excel(writer, sheet_name=f'week{list_current_week}', index=True)
+                    df_corr.to_excel(writer, sheet_name=f'week{[list_current_week[0], list_current_week[-1]]}', index=True)
                     self.sum_dataframe(df_corr)
                     sums.append(self.sum_dataframe(df_corr))
                     row_sum.append("week" + list_current_week)

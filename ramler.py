@@ -87,14 +87,18 @@ class RamblerPars:
                         count_tag = 0
                         for tag in all_tags:
                             for j in self.tags[tag]:
-                                if value_annotation.find(j) > 0:
-                                    news_from_week[count_tag] += 1
-                                    # print(url)
-                                    # print("Календарная неделя: " + weeks)
-                                    # print("Тэг: " + tag + " Номер тэга: " + str(count_tag))
-                                    # print("Новость: " + value_annotation)
-                                    # print("Найденое ключевое слово: " + j)
-                                    # print(value_annotation.lower().find(j))
+                                try:
+                                    if value_annotation.find(j) > 0:
+                                        news_from_week[count_tag] += 1
+                                        # print(url)
+                                        # print("Календарная неделя: " + weeks)
+                                        # print("Тэг: " + tag + " Номер тэга: " + str(count_tag))
+                                        # print("Новость: " + value_annotation)
+                                        # print("Найденое ключевое слово: " + j)
+                                        # print(value_annotation.lower().find(j))
+                                except:
+                                    print("Ошибка " + tag + j)
+
                             count_tag += 1
                     # print(news_from_week)
 
