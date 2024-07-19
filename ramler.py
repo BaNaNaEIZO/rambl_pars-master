@@ -19,7 +19,8 @@ import csv
 class RamblerPars:
     def __init__(self, days=100, pages=1, tag_file="tags.json", output="files/news.csv", encoding="utf-8"):
         # Текущая дата
-        current_time = self.get_current_time()
+        self.current_time = self.get_current_time()
+        # self.current_time = self.get_current_time()
 
         # Если раскоментированно, то выполняет парсинг начиная с 31.12.2023. Важно: Необходимо раскоментировать костыль (строка 15 в correlation.py)
         # current_time = datetime.datetime.today() - datetime.timedelta(datetime.datetime.today().day) # 31.12.2023
@@ -32,13 +33,13 @@ class RamblerPars:
         self.output = output
         self.encoding = encoding
         self.tags = self.get_tags_from_json()
-        self.date_list = [current_time - datetime.timedelta(days=x) for x in range(days)]  # Создание списка дней
+        self.date_list = [self.current_time - datetime.timedelta(days=x) for x in range(days)]  # Создание списка дней
 
     def get_current_time(self):
         return datetime.datetime.today()
 
     def get_time_work(self):
-        current_time = self.get_current_time()
+        current_time = self.current_time
         time_work = self.days * self.pages
         delta_time_work = current_time + datetime.timedelta(minutes=(time_work // 60), seconds=(time_work % 60))
         print("\nНачало работы: "f"{current_time.hour}ч. {current_time.minute}м. {current_time.second}с. "
@@ -61,7 +62,7 @@ class RamblerPars:
             file_writer = csv.writer(w_file, delimiter=",", lineterminator="\r")
             file_writer.writerow(["week", "tag", "sum_news"])
             all_tags = []
-            current_week = datetime.datetime.today().isocalendar().week
+            current_week = self.current_time.isocalendar().week
             # value_annotation1 = "аэропорт"
             for key in self.tags.keys():
                 all_tags.append(key)
@@ -97,7 +98,8 @@ class RamblerPars:
                                         # print("Найденое ключевое слово: " + j)
                                         # print(value_annotation.lower().find(j))
                                 except:
-                                    print("Ошибка " + tag + j)
+                                    pass
+                                    # print("skip")  # pass
 
                             count_tag += 1
                     # print(news_from_week)
