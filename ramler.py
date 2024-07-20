@@ -17,10 +17,10 @@ import csv
 #
 
 class RamblerPars:
-    def __init__(self, days=100, pages=1, tag_file="tags.json", output="files/news.csv", encoding="utf-8"):
+    def __init__(self, days=100, pages=1, tag_file="tags.json", output="files/news.csv", encoding="utf-8",
+                 start_day=datetime.datetime.today()):
         # Текущая дата
-        self.current_time = self.get_current_time()
-        # self.current_time = self.get_current_time()
+        self.current_time = start_day
 
         # Если раскоментированно, то выполняет парсинг начиная с 31.12.2023. Важно: Необходимо раскоментировать костыль (строка 15 в correlation.py)
         # current_time = datetime.datetime.today() - datetime.timedelta(datetime.datetime.today().day) # 31.12.2023
@@ -34,6 +34,7 @@ class RamblerPars:
         self.encoding = encoding
         self.tags = self.get_tags_from_json()
         self.date_list = [self.current_time - datetime.timedelta(days=x) for x in range(days)]  # Создание списка дней
+        print(self.date_list)
 
     def get_current_time(self):
         return datetime.datetime.today()
@@ -47,7 +48,7 @@ class RamblerPars:
 
     # Забираем словарь с тэгами из файла
     def get_tags_from_json(self):
-        self.get_time_work()
+        # self.get_time_work()
         with open(self.tag_file, mode="r", encoding="utf-8") as r_file:
             data = r_file.read()
             data = json.loads(data)
@@ -117,3 +118,12 @@ def data_input():
     pages = input("Введите pages: ")
     weeks = input("Введите weeks: ")
     return days, pages, weeks
+
+
+def choice_day():
+    choice = input("Ввдите дату или пропустите. Формат(dd/mm/yyyy): ")
+    print()
+    date = datetime.datetime.today()
+    if choice:
+        date = datetime.datetime.strptime(choice, '%d/%m/%Y').date()
+    return date
