@@ -51,16 +51,24 @@ class Correlation:
                 row_sum.append("week" + str(list_current_week))
                 df_sum = pd.DataFrame(sums, index=row_sum, columns=["positive", "negative", "abs"])
                 list_of_all_sums_pos, list_of_all_sums_neg = self.sum_corr(df_corr)
+                all_character, character, flag = self.sum_of_characters(df_corr)
+                list_all_character = []
+                list_all_character = all_character + [np.NAN] * (len(df_corr.index) - len(all_character))
+
+                # Добавляет к output строки снизу
+                df_corr.loc[" "] = np.NAN
+                df_corr.loc["Конфликт"] = flag
+                df_corr.loc["+/-"] = character
+                df_corr.loc["Сумма +/-"] = list_all_character
                 df_corr.loc[" "] = np.NAN
                 df_corr.loc["Положительные"] = list_of_all_sums_pos
                 df_corr.loc["Отрицательные"] = list_of_all_sums_neg
-                print(df_corr)
+
                 df_corr.to_excel(writer, sheet_name=f'week{list_current_week[0]}-{list_current_week[-1]}',
                                  index=True)
 
                 list_current_week = []
             df_sum.to_excel(writer, sheet_name=f'Итоговый график')
-
 
     def sum_corr(self, df):
         list_of_all_sums_pos = []
@@ -77,6 +85,52 @@ class Correlation:
             list_of_all_sums_pos.append(sum_pos)
             list_of_all_sums_neg.append(sum_neg)
         return list_of_all_sums_pos, list_of_all_sums_neg
+
+    def sum_of_characters(self, df):
+        list_flag = []
+        list_sum_characters = []
+        list_all_sum_pos_characters = 0
+        list_all_sum_neg_characters = 0
+        all_character = [0, 0, ""]
+        for item in df.columns:
+            list_df = df[item].tolist()
+            for i in list_df:
+                if i == 0:
+                    list_df.pop(list_df.index(0))
+                elif i == 1:
+                    list_df.pop(list_df.index(1))
+            len_list_df = len(list_df)
+
+            sum_characters = np.sum(np.array(list_df) >= 0, axis=0)
+            list_sum_characters.append(f"+{sum_characters} -{len_list_df - sum_characters}")
+            list_all_sum_pos_characters += sum_characters
+            list_all_sum_neg_characters += len_list_df - sum_characters
+            if (((len_list_df - sum_characters) % 2 == 0) or (len_list_df == sum_characters)) or (
+                    (len_list_df - sum_characters) == sum_characters) and (
+                    (len_list_df - sum_characters) < sum_characters):
+                list_flag.append("нет")
+            elif (len_list_df - sum_characters) > sum_characters or ((len_list_df - sum_characters) % 2) == 1:
+                list_flag.append("ЕСТЬ")
+            else:
+                list_flag.append("Не понятно")
+        list_flag_all = []
+        if (((list_all_sum_neg_characters % 2 == 0) or (list_all_sum_pos_characters == list_all_sum_pos_characters + list_all_sum_neg_characters)) or (
+                list_all_sum_pos_characters == list_all_sum_neg_characters)) and (
+                list_all_sum_neg_characters < list_all_sum_pos_characters):
+            list_flag_all.append("нет")
+        elif list_all_sum_neg_characters > list_all_sum_pos_characters or (list_all_sum_neg_characters % 2) == 1:
+            list_flag_all.append("ЕСТЬ")
+        else:
+            list_flag_all.append("Не понятно")
+
+        all_character[0] = f"+{list_all_sum_pos_characters}"
+        all_character[1] = f"-{list_all_sum_neg_characters}"
+        all_character[2] = f"{list_flag_all[0]}"
+
+
+
+
+        return all_character, list_sum_characters, list_flag
 
     def all_news_to_excel(self):
         df = pd.read_csv("files/news.csv")
@@ -161,7 +215,6 @@ class Correlation:
                 df.to_excel(writer, sheet_name=f"week_{week}")
                 count_of_news_end += len(sps_tags)
                 count_of_news_start += len(sps_tags)
-
 
     def sum_dataframe(self, df):
         sum_positive = 0

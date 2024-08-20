@@ -34,7 +34,6 @@ class RamblerPars:
         self.encoding = encoding
         self.tags = self.get_tags_from_json()
         self.date_list = [self.current_time - datetime.timedelta(days=x) for x in range(days)]  # Создание списка дней
-        print(self.date_list)
 
     def get_current_time(self):
         return datetime.datetime.today()
