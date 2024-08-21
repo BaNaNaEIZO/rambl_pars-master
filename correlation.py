@@ -80,7 +80,7 @@ class Correlation:
             for i in list_df:
                 if i >= 0:
                     sum_pos += i
-                else:
+                elif i < 0:
                     sum_neg += i
             list_of_all_sums_pos.append(sum_pos)
             list_of_all_sums_neg.append(sum_neg)
