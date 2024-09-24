@@ -66,9 +66,9 @@ class Correlation:
 
                 df_corr.to_excel(writer, sheet_name=f'week{list_current_week[0]}-{list_current_week[-1]}',
                                  index=True)
-
                 list_current_week = []
-            df_sum.to_excel(writer, sheet_name=f'Итоговый график')
+                if len_lag - 1 == i:
+                    df_sum.to_excel(writer, sheet_name=f'Итоговый график')
 
     def sum_corr(self, df):
         list_of_all_sums_pos = []

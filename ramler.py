@@ -85,6 +85,7 @@ class RamblerPars:
                 if len(data) != 0:
                     for i in range(len(data)):
                         value_annotation = data[i]["long_title"]
+                        print(f"\"{value_annotation}\", ")
                         count_tag = 0
                         for tag in all_tags:
                             for j in self.tags[tag]:

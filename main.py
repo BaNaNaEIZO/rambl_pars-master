@@ -11,7 +11,7 @@ if __name__ == '__main__':
     parser = RamblerPars(days=int(days), pages=int(pages), start_day=choice_day())
     parser.page_request()
     correlation = Correlation(k=int(weeks))
-    # correlation = Correlation(k=4)
+    # correlation = Correlation(k=3)
     correlation.all_news_to_excel()
     correlation.all_percent_news_to_excel()
     correlation.all_dependency_news_to_excel()
