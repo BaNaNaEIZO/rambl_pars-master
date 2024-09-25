@@ -227,4 +227,4 @@ class Correlation:
                     sum_negative += value
                 elif value > 0:
                     sum_positive += value
-        return sum_positive - 45, sum_negative, sum_all - 45
+        return sum_positive - len(df.columns), sum_negative, sum_all - len(df.columns)

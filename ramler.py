@@ -1,3 +1,5 @@
+import numpy as np
+import pandas as pd
 import requests
 import datetime
 import json
@@ -63,19 +65,23 @@ class RamblerPars:
             file_writer = csv.writer(w_file, delimiter=",", lineterminator="\r")
             file_writer.writerow(["week", "tag", "sum_news"])
             tag_list = []
+            df_for_news_str = pd.DataFrame()
+
             current_week = self.current_time.isocalendar().week
-            # value_annotation1 = "аэропорт"
             for key in self.tags.keys():
                 tag_list.append(key)
 
             news_from_week = [x * 0 for x in range(len(tag_list))]
+
+            list_for_news_str = [[] for x in range(len(tag_list))]
 
             for weeks, url in self.get_date_request():
                 try:
                     data_json = requests.get(url, self.headers)
                     data = json.loads(data_json.text)
                 except:
-                    print(data_json.text, data_json)
+                    print(data_json.text, data_json,
+                          "\n//Обработана ошибка запроса//\nПродолжается выполнения программы...")
 
                 if current_week != weeks:
                     i = 0
@@ -83,8 +89,16 @@ class RamblerPars:
                     for row in news_from_week:
                         file_writer.writerow([current_week, tag_list[i], row])
                         i += 1
+                    df_for_news_str = pd.DataFrame(list_for_news_str, index=tag_list).T
+                    with pd.ExcelWriter(f"files/news_from_week/news_from_{current_week}_week.xlsx") as writer:
+                        for count in range(len(df_for_news_str.columns)):
+                            df_for_news_str[tag_list[count]].to_excel(writer, sheet_name=tag_list[count])
+
                     current_week = weeks
+
                     news_from_week = [x * 0 for x in range(len(tag_list))]
+                    df_for_news_str = pd.DataFrame()
+                    list_for_news_str = [[] for x in range(len(tag_list))]
 
                 if len(data) != 0:
                     temp_list = []
@@ -97,20 +111,25 @@ class RamblerPars:
                                 temp_list.append([tag, item[0], item[1]])
                             key_and_values_list.append(temp_list)
                             temp_list = []
-                        var = self.search(value_annotation, key_and_values_list)
+                        var, news = self.search(value_annotation, key_and_values_list)
                         if var >= 0:
                             news_from_week[var] += 1
+                            list_for_news_str[var].append(news)
 
     def search(self, in_str, key_and_values_list):
         news_weight_list = [x * 0 for x in range(len(key_and_values_list) + 1)]
-        for my_str in re.split(r'[ ,«»":()]+', in_str):
-            count = 1
-            for item in key_and_values_list:
-                for value in item:
-                    if my_str.lower() == value[1]:
-                        news_weight_list[count] += value[2]
-                count += 1
-        return (max(enumerate(news_weight_list), key=lambda x: x[1])[0]) - 1
+        try:
+            for my_str in re.split(r'[ ,«»":()]+', in_str):
+                count = 1
+                for item in key_and_values_list:
+                    for value in item:
+                        if my_str.lower() == value[1]:
+                            news_weight_list[count] += value[2]
+                    count += 1
+        except:
+            print("//Обработана ошибка поиска//\nПродолжается выполнения программы...")
+
+        return (max(enumerate(news_weight_list), key=lambda x: x[1])[0]) - 1, in_str
 
     def get_date_request(self):
         for current_time in self.date_list:
@@ -128,7 +147,7 @@ def data_input():
 
 
 def choice_day():
-    choice = input("Ввдите дату или пропустите. Формат(dd/mm/yyyy): ")
+    choice = input("Введите дату или пропустите. Формат(dd/mm/yyyy): ")
     print()
     date = datetime.datetime.today()
     if choice:
