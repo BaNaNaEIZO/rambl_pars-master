@@ -5,6 +5,8 @@ import datetime
 import json
 import csv
 import re
+import shutil
+import os
 
 
 # Парсер выполняет поиск по ссылке https://peroxide.rambler.ru/v1/projects/1/clusters/?limit=50&page=1&date=2023-12-31
@@ -76,12 +78,13 @@ class RamblerPars:
             list_for_news_str = [[] for x in range(len(tag_list))]
 
             for weeks, url in self.get_date_request():
+
                 try:
                     data_json = requests.get(url, self.headers)
                     data = json.loads(data_json.text)
-                except:
+                except ValueError:
                     print(data_json.text, data_json,
-                          "\n//Обработана ошибка запроса//\nПродолжается выполнения программы...")
+                          "\n//Обработана ошибка запроса//\nПродолжается выполнение программы...")
 
                 if current_week != weeks:
                     i = 0
@@ -104,30 +107,55 @@ class RamblerPars:
                     temp_list = []
 
                     for i in range(len(data)):
-                        value_annotation = data[i]["long_title"]
+                        try:
+                            value_annotation = data[i]["long_title"]
+                            value_id = data[i]["id"]
+                            value_normalized_title = data[i]["normalized_title"]
+                        except KeyError:
+                            print("Страница ", data)
+                            print("Индекс ", i)
+                            print(len(data))
+
                         key_and_values_list = []
                         for tag in tag_list:
                             for item in self.tags.get(tag):
                                 temp_list.append([tag, item[0], item[1]])
                             key_and_values_list.append(temp_list)
                             temp_list = []
-                        var, news = self.search(value_annotation, key_and_values_list)
+                        var, news = self.search(value_annotation, key_and_values_list)  # 46 TypeError
+                        # if var >= 0:
+                        #     news_from_week[var] += 1
+                        #     list_for_news_str[0][var].append(f"https://news.rambler.ru/{value_id}-{value_normalized_title}")
+                        #     list_for_news_str[1][var].append(value_annotation.replace('"', ""))
+                        # else:
+                        #     list_for_news_str[var].append(value_annotation.replace('"', ""))
+                        #     print(value_annotation.replace('"', ""))
+                        #     print(my_str)
                         if var >= 0:
                             news_from_week[var] += 1
-                            list_for_news_str[var].append(news)
+                            my_str = '=HYPERLINK("{}", "{}")'.format(
+                                f"https://news.rambler.ru/{value_id}-{value_normalized_title}",
+                                value_annotation.replace('"', ""))
+                            if len(f"https://news.rambler.ru/{value_id}-{value_normalized_title}") < 255:
+                                list_for_news_str[var].append(my_str)
+                            else:
+                                list_for_news_str[var].append(value_annotation.replace('"', ""))
+                                with open("files/news_from_week/other.txt", mode="a", encoding=self.encoding) as w_txt:
+                                    w_txt.write(
+                                        f"week_{weeks} tag_{tag_list[var]}  https://news.rambler.ru/{value_id}-{value_normalized_title},  {value_annotation}\n")
 
     def search(self, in_str, key_and_values_list):
         news_weight_list = [x * 0 for x in range(len(key_and_values_list) + 1)]
         try:
-            for my_str in re.split(r'[ ,«»":()]+', in_str):
+            for my_str in re.split(r'[ ,«»":()]+', in_str):  # 46 TypeError
                 count = 1
                 for item in key_and_values_list:
                     for value in item:
                         if my_str.lower() == value[1]:
                             news_weight_list[count] += value[2]
                     count += 1
-        except:
-            print("//Обработана ошибка поиска//\nПродолжается выполнения программы...")
+        except TypeError:
+            print("//Обработана ошибка поиска//\nПродолжается выполнение программы...")
 
         return (max(enumerate(news_weight_list), key=lambda x: x[1])[0]) - 1, in_str
 
@@ -153,3 +181,12 @@ def choice_day():
     if choice:
         date = datetime.datetime.strptime(choice, '%d/%m/%Y').date()
     return date
+
+
+def work_with_os():
+    if os.path.isdir("files"):
+        shutil.rmtree("files")
+    if os.path.isdir("files/news_from_week"):
+        shutil.rmtree("files/news_from_week")
+    os.mkdir("files")
+    os.mkdir("files/news_from_week")

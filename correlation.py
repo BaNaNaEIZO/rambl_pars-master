@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 
 
 class Correlation:
@@ -37,8 +38,9 @@ class Correlation:
         list_current_week = []
         sums = []
         row_sum = []
+        # Файл output.xlsx
         with pd.ExcelWriter(self.output, engine='xlsxwriter') as writer:
-            df, list_of_week, list_of_tag = self.dataframe_transform_to_correlation()
+            df, list_of_week, list_of_tag = self.dataframe_transform_to_correlation() #
             len_lag = len(list_of_week) - self.k + 1
             for i in range(len_lag):
                 df_corr = df.iloc[i:self.k + i, :]
@@ -92,19 +94,27 @@ class Correlation:
         list_all_sum_pos_characters = 0
         list_all_sum_neg_characters = 0
         all_character = [0, 0, ""]
+        # Преобразовываем df в list и проходимся по столбцам
         for item in df.columns:
             list_df = df[item].tolist()
+            new_list_df = []
+            # Убираем 0 и nan из столбца матрицы корреляции
             for i in list_df:
-                if i == 0:
-                    list_df.pop(list_df.index(0))
-                elif i == 1:
-                    list_df.pop(list_df.index(1))
-            len_list_df = len(list_df)
+                if not ((math.isclose(i, 0.0)) or math.isnan(i)):
+                    new_list_df.append(i)
 
-            sum_characters = np.sum(np.array(list_df) >= 0, axis=0)
-            list_sum_characters.append(f"+{sum_characters} -{len_list_df - sum_characters}")
+            len_list_df = len(new_list_df) - 1  # Вычисляем количество значимых чисел в столбце матрицы
+
+            sum_characters = np.sum(np.array(new_list_df) > 0, axis=0) - 1  # Вычисляем сумму положительных чисел
+            list_sum_characters.append(                                #
+                f"+{sum_characters} -{len_list_df - sum_characters}")  # Формируем запись о знаках в столбце таблицы
+
+            # Список всех положительных знаков в рамках одной матрицы
             list_all_sum_pos_characters += sum_characters
+            # Список всех отрицательных знаков в рамках одной матрицы
             list_all_sum_neg_characters += len_list_df - sum_characters
+
+            # Проверка конфликтов по столбцам
             if (((len_list_df - sum_characters) % 2 == 0) or (len_list_df == sum_characters)) or (
                     (len_list_df - sum_characters) == sum_characters) and (
                     (len_list_df - sum_characters) < sum_characters):
@@ -112,10 +122,13 @@ class Correlation:
             elif (len_list_df - sum_characters) > sum_characters or ((len_list_df - sum_characters) % 2) == 1:
                 list_flag.append("ЕСТЬ")
             else:
-                list_flag.append("Не понятно")
+                list_flag.append("Не понятно")  # Какая-то ошибка
+
+        # Проверка конфликта у всей матрицы
         list_flag_all = []
-        if (((list_all_sum_neg_characters % 2 == 0) or (list_all_sum_pos_characters == list_all_sum_pos_characters + list_all_sum_neg_characters)) or (
-                list_all_sum_pos_characters == list_all_sum_neg_characters)) and (
+        if (((list_all_sum_neg_characters % 2 == 0) or (
+                list_all_sum_pos_characters == list_all_sum_pos_characters + list_all_sum_neg_characters)) or (
+                    list_all_sum_pos_characters == list_all_sum_neg_characters)) and (
                 list_all_sum_neg_characters < list_all_sum_pos_characters):
             list_flag_all.append("нет")
         elif list_all_sum_neg_characters > list_all_sum_pos_characters or (list_all_sum_neg_characters % 2) == 1:
@@ -123,13 +136,12 @@ class Correlation:
         else:
             list_flag_all.append("Не понятно")
 
+        # Формирование вывода сумм знаков и конфликта для всей матрицы
         all_character[0] = f"+{list_all_sum_pos_characters}"
         all_character[1] = f"-{list_all_sum_neg_characters}"
         all_character[2] = f"{list_flag_all[0]}"
 
-
-
-
+        # Для вей матрицы, список суммы +/- по столбцам, конфликтность для столбцов
         return all_character, list_sum_characters, list_flag
 
     def all_news_to_excel(self):
