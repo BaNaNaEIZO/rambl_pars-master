@@ -55,14 +55,14 @@ class Correlation:
                 list_of_all_sums_pos, list_of_all_sums_neg = self.sum_corr(df_corr)
                 all_character, character, flag = self.sum_of_characters(df_corr)
                 list_all_character = []
-                list_all_character = all_character + [np.NAN] * (len(df_corr.index) - len(all_character))
+                list_all_character = all_character + [np.nan] * (len(df_corr.index) - len(all_character))
 
                 # Добавляет к output строки снизу
-                df_corr.loc[" "] = np.NAN
+                df_corr.loc[" "] = np.nan
                 df_corr.loc["Конфликт"] = flag
                 df_corr.loc["+/-"] = character
                 df_corr.loc["Сумма +/-"] = list_all_character
-                df_corr.loc[" "] = np.NAN
+                df_corr.loc[" "] = np.nan
                 df_corr.loc["Положительные"] = list_of_all_sums_pos
                 df_corr.loc["Отрицательные"] = list_of_all_sums_neg
 

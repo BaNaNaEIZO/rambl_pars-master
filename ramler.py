@@ -83,8 +83,8 @@ class RamblerPars:
                     data_json = requests.get(url, self.headers)
                     data = json.loads(data_json.text)
                 except ValueError:
-                    print(data_json.text, data_json,
-                          "\n//Обработана ошибка запроса//\nПродолжается выполнение программы...")
+                    print("//Обработана ошибка запроса//\n", data_json.text, data_json,
+                          "\nПродолжается выполнение программы...")
 
                 if current_week != weeks:
                     i = 0
@@ -143,6 +143,8 @@ class RamblerPars:
                                 with open("files/news_from_week/other.txt", mode="a", encoding=self.encoding) as w_txt:
                                     w_txt.write(
                                         f"week_{weeks} tag_{tag_list[var]}  https://news.rambler.ru/{value_id}-{value_normalized_title},  {value_annotation}\n")
+
+
 
     def search(self, in_str, key_and_values_list):
         news_weight_list = [x * 0 for x in range(len(key_and_values_list) + 1)]
